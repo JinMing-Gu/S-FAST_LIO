@@ -53,9 +53,12 @@ find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
 )
 
+set(Sophus_INCLUDE_DIRS "/home/uisee/Environment/Sophus_a621ff/installation/include")
+set(Sophus_LIBRARIES "/home/uisee/Environment/Sophus_a621ff/installation/lib/libSophus.so")
+
 find_package(Eigen3 REQUIRED)
-find_package(PCL 1.8 REQUIRED)
-find_package( Sophus REQUIRED )
+find_package(PCL REQUIRED)
+find_package(Sophus REQUIRED )
 
 message(Eigen: ${EIGEN3_INCLUDE_DIR})
 
