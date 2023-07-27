@@ -50,12 +50,12 @@ class KD_TREE
 {
     // using MANUAL_Q_ = MANUAL_Q<typename PointType>;
     // using PointVector = std::vector<PointType>;
-    
+
     // using MANUAL_Q_ = MANUAL_Q<typename PointType>;
 public:
     using PointVector = std::vector<PointType, Eigen::aligned_allocator<PointType>>;
     using Ptr = std::shared_ptr<KD_TREE<PointType>>;
-    
+
     struct KD_TREE_NODE
     {
         PointType point;
@@ -290,7 +290,7 @@ private:
     void Delete_by_point(KD_TREE_NODE **root, PointType point, bool allow_rebuild);
     void Add_by_point(KD_TREE_NODE **root, PointType point, bool allow_rebuild, int father_axis);
     void Add_by_range(KD_TREE_NODE **root, BoxPointType boxpoint, bool allow_rebuild);
-    void Search(KD_TREE_NODE *root, int k_nearest, PointType point, MANUAL_HEAP &q, float max_dist); //priority_queue<PointType_CMP>
+    void Search(KD_TREE_NODE *root, int k_nearest, PointType point, MANUAL_HEAP &q, float max_dist); // priority_queue<PointType_CMP>
     void Search_by_range(KD_TREE_NODE *root, BoxPointType boxpoint, PointVector &Storage);
     void Search_by_radius(KD_TREE_NODE *root, PointType point, float radius, PointVector &Storage);
     bool Criterion_Check(KD_TREE_NODE *root);

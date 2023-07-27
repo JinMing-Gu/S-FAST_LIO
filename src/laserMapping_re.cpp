@@ -68,8 +68,8 @@ deque<sensor_msgs::Imu::ConstPtr> imu_buffer;
 
 PointCloudXYZI::Ptr featsFromMap(new PointCloudXYZI());
 PointCloudXYZI::Ptr feats_undistort(new PointCloudXYZI());
-PointCloudXYZI::Ptr feats_down_body(new PointCloudXYZI());  //畸变纠正后降采样的单帧点云，lidar系
-PointCloudXYZI::Ptr feats_down_world(new PointCloudXYZI()); //畸变纠正后降采样的单帧点云，W系
+PointCloudXYZI::Ptr feats_down_body(new PointCloudXYZI());  // 畸变纠正后降采样的单帧点云，lidar系
+PointCloudXYZI::Ptr feats_down_world(new PointCloudXYZI()); // 畸变纠正后降采样的单帧点云，W系
 PointCloudXYZI::Ptr cloud(new PointCloudXYZI());
 
 pcl::VoxelGrid<PointType> downSizeFilterSurf;
@@ -86,7 +86,7 @@ MeasureGroup Measures;
 esekfom::esekf kf;
 
 state_ikfom state_point;
-Eigen::Vector3d pos_lid; //估计的W系下的位置
+Eigen::Vector3d pos_lid; // 估计的W系下的位置
 
 nav_msgs::Path path;
 nav_msgs::Odometry odomAftMapped;
@@ -189,7 +189,7 @@ void imu_cbk(const sensor_msgs::Imu::ConstPtr &msg_in)
 
 double lidar_mean_scantime = 0.0;
 int scan_num = 0;
-//把当前要处理的LIDAR和IMU数据打包到meas
+// 把当前要处理的LIDAR和IMU数据打包到meas
 bool sync_packages(MeasureGroup &meas)
 {
     if (lidar_buffer.empty() || imu_buffer.empty())
@@ -276,7 +276,7 @@ void lasermap_fov_segment()
     kdtree_delete_counter = 0;
 
     V3D pos_LiD = pos_lid; // W系下位置
-    //初始化局部地图范围，以pos_LiD为中心,长宽高均为cube_len
+    // 初始化局部地图范围，以pos_LiD为中心,长宽高均为cube_len
     if (!Localmap_Initialized)
     {
         for (int i = 0; i < 3; i++)
@@ -288,7 +288,7 @@ void lasermap_fov_segment()
         return;
     }
 
-    //各个方向上pos_LiD与局部地图边界的距离
+    // 各个方向上pos_LiD与局部地图边界的距离
     float dist_to_map_edge[3][2];
     bool need_move = false;
     for (int i = 0; i < 3; i++)
@@ -300,11 +300,11 @@ void lasermap_fov_segment()
             need_move = true;
     }
     if (!need_move)
-        return; //如果不需要，直接返回，不更改局部地图
+        return; // 如果不需要，直接返回，不更改局部地图
 
     BoxPointType New_LocalMap_Points, tmp_boxpoints;
     New_LocalMap_Points = LocalMap_Points;
-    //需要移动的距离
+    // 需要移动的距离
     float mov_dist = max((cube_len - 2.0 * MOV_THRESHOLD * DET_RANGE) * 0.5 * 0.9, double(DET_RANGE * (MOV_THRESHOLD - 1)));
     for (int i = 0; i < 3; i++)
     {
@@ -330,7 +330,7 @@ void lasermap_fov_segment()
     ikdtree.acquire_removed_points(points_history);
 
     if (cub_needrm.size() > 0)
-        kdtree_delete_counter = ikdtree.Delete_Point_Boxes(cub_needrm); //删除指定范围内的点
+        kdtree_delete_counter = ikdtree.Delete_Point_Boxes(cub_needrm); // 删除指定范围内的点
 }
 
 void RGBpointBodyLidarToIMU(PointType const *const pi, PointType *const po)
@@ -344,10 +344,10 @@ void RGBpointBodyLidarToIMU(PointType const *const pi, PointType *const po)
     po->intensity = pi->intensity;
 }
 
-//根据最新估计位姿  增量添加点云到map
+// 根据最新估计位姿  增量添加点云到map
 void init_ikdtree()
 {
-    //加载读取点云数据到cloud中
+    // 加载读取点云数据到cloud中
     string all_points_dir(string(string(ROOT_DIR) + "PCD/") + "GlobalMap_ikdtree.pcd");
     if (pcl::io::loadPCDFile<PointType>(all_points_dir, *cloud) == -1)
     {
@@ -532,7 +532,7 @@ int main(int argc, char **argv)
     nh.param<int>("point_filter_num", p_pre->point_filter_num, 2);           // 采样间隔，即每隔point_filter_num个点取1个点
     nh.param<bool>("feature_extract_enable", p_pre->feature_enabled, false); // 是否提取特征点（FAST_LIO2默认不进行特征点提取）
     nh.param<bool>("mapping/extrinsic_est_en", extrinsic_est_en, true);
-    nh.param<bool>("pcd_save/pcd_save_en", pcd_save_en, false); // 是否将点云地图保存到PCD文件
+    nh.param<bool>("pcd_save/pcd_save_en", pcd_save_en, false);                 // 是否将点云地图保存到PCD文件
     nh.param<vector<double>>("mapping/extrinsic_T", extrinT, vector<double>()); // 雷达相对于IMU的外参T（即雷达在IMU坐标系中的坐标）
     nh.param<vector<double>>("mapping/extrinsic_R", extrinR, vector<double>()); // 雷达相对于IMU的外参R
 
@@ -566,7 +566,7 @@ int main(int argc, char **argv)
     signal(SIGINT, SigHandle);
     ros::Rate rate(5000);
 
-    init_ikdtree(); //读取点云文件 初始化ikdtree
+    init_ikdtree(); // 读取点云文件 初始化ikdtree
 
     state_point = kf.get_x();
     state_point.pos = Eigen::Vector3d(init_pos[0], init_pos[1], init_pos[2]);
@@ -581,7 +581,7 @@ int main(int argc, char **argv)
             break;
         ros::spinOnce();
 
-        if (sync_packages(Measures)) //把一次的IMU和LIDAR数据打包到Measures
+        if (sync_packages(Measures)) // 把一次的IMU和LIDAR数据打包到Measures
         {
             double t00 = omp_get_wtime();
 
@@ -608,7 +608,7 @@ int main(int argc, char **argv)
 
             p_imu1->Process(Measures, kf, feats_undistort);
 
-            //如果feats_undistort为空 ROS_WARN
+            // 如果feats_undistort为空 ROS_WARN
             if (feats_undistort->empty() || (feats_undistort == NULL))
             {
                 ROS_WARN("No point, skip this scan!\n");
@@ -620,9 +620,9 @@ int main(int argc, char **argv)
 
             flg_EKF_inited = (Measures.lidar_beg_time - first_lidar_time) < INIT_TIME ? false : true;
 
-            lasermap_fov_segment(); //更新localmap边界，然后降采样当前帧点云
+            lasermap_fov_segment(); // 更新localmap边界，然后降采样当前帧点云
 
-            //点云下采样
+            // 点云下采样
             downSizeFilterSurf.setInputCloud(feats_undistort);
             downSizeFilterSurf.filter(*feats_down_body);
             feats_down_size = feats_down_body->points.size();
@@ -644,7 +644,7 @@ int main(int argc, char **argv)
             }
 
             /*** iterated state estimation ***/
-            Nearest_Points.resize(feats_down_size); //存储近邻点的vector
+            Nearest_Points.resize(feats_down_size); // 存储近邻点的vector
             kf.update_iterated_dyn_share_modified(LASER_POINT_COV, feats_down_body, ikdtree, Nearest_Points, NUM_MAX_ITERATIONS, extrinsic_est_en);
 
             state_point = kf.get_x();

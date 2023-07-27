@@ -65,8 +65,8 @@ deque<sensor_msgs::Imu::ConstPtr> imu_buffer;
 
 PointCloudXYZI::Ptr featsFromMap(new PointCloudXYZI());
 PointCloudXYZI::Ptr feats_undistort(new PointCloudXYZI());
-PointCloudXYZI::Ptr feats_down_body(new PointCloudXYZI());  //畸变纠正后降采样的单帧点云，lidar系
-PointCloudXYZI::Ptr feats_down_world(new PointCloudXYZI()); //畸变纠正后降采样的单帧点云，W系
+PointCloudXYZI::Ptr feats_down_body(new PointCloudXYZI());  // 畸变纠正后降采样的单帧点云，lidar系
+PointCloudXYZI::Ptr feats_down_world(new PointCloudXYZI()); // 畸变纠正后降采样的单帧点云，W系
 
 pcl::VoxelGrid<PointType> downSizeFilterSurf;
 pcl::VoxelGrid<PointType> downSizeFilterMap;
@@ -82,7 +82,7 @@ MeasureGroup Measures;
 esekfom::esekf kf;
 
 state_ikfom state_point;
-Eigen::Vector3d pos_lid; //估计的W系下的位置
+Eigen::Vector3d pos_lid; // 估计的W系下的位置
 
 nav_msgs::Path path;
 nav_msgs::Odometry odomAftMapped;
@@ -185,7 +185,7 @@ void imu_cbk(const sensor_msgs::Imu::ConstPtr &msg_in)
 
 double lidar_mean_scantime = 0.0;
 int scan_num = 0;
-//把当前要处理的LIDAR和IMU数据打包到meas
+// 把当前要处理的LIDAR和IMU数据打包到meas
 bool sync_packages(MeasureGroup &meas)
 {
     if (lidar_buffer.empty() || imu_buffer.empty())
@@ -211,7 +211,7 @@ bool sync_packages(MeasureGroup &meas)
         {
             scan_num++;
             lidar_end_time = meas.lidar_beg_time + meas.lidar->points.back().curvature / double(1000);
-            lidar_mean_scantime += (meas.lidar->points.back().curvature / double(1000) - lidar_mean_scantime) / scan_num;  //注意curvature中存储的是相对第一个点的时间
+            lidar_mean_scantime += (meas.lidar->points.back().curvature / double(1000) - lidar_mean_scantime) / scan_num; // 注意curvature中存储的是相对第一个点的时间
         }
 
         meas.lidar_end_time = lidar_end_time;
@@ -219,7 +219,7 @@ bool sync_packages(MeasureGroup &meas)
         lidar_pushed = true;
     }
 
-    if (last_timestamp_imu < lidar_end_time)  //如果最新的imu时间戳都<雷达最终的时间，证明还没有收集足够的imu数据，break
+    if (last_timestamp_imu < lidar_end_time) // 如果最新的imu时间戳都<雷达最终的时间，证明还没有收集足够的imu数据，break
     {
         return false;
     }
@@ -272,7 +272,7 @@ void lasermap_fov_segment()
     kdtree_delete_counter = 0;
 
     V3D pos_LiD = pos_lid; // W系下位置
-    //初始化局部地图范围，以pos_LiD为中心,长宽高均为cube_len
+    // 初始化局部地图范围，以pos_LiD为中心,长宽高均为cube_len
     if (!Localmap_Initialized)
     {
         for (int i = 0; i < 3; i++)
@@ -284,7 +284,7 @@ void lasermap_fov_segment()
         return;
     }
 
-    //各个方向上pos_LiD与局部地图边界的距离
+    // 各个方向上pos_LiD与局部地图边界的距离
     float dist_to_map_edge[3][2];
     bool need_move = false;
     for (int i = 0; i < 3; i++)
@@ -296,11 +296,11 @@ void lasermap_fov_segment()
             need_move = true;
     }
     if (!need_move)
-        return; //如果不需要，直接返回，不更改局部地图
+        return; // 如果不需要，直接返回，不更改局部地图
 
     BoxPointType New_LocalMap_Points, tmp_boxpoints;
     New_LocalMap_Points = LocalMap_Points;
-    //需要移动的距离
+    // 需要移动的距离
     float mov_dist = max((cube_len - 2.0 * MOV_THRESHOLD * DET_RANGE) * 0.5 * 0.9, double(DET_RANGE * (MOV_THRESHOLD - 1)));
     for (int i = 0; i < 3; i++)
     {
@@ -326,7 +326,7 @@ void lasermap_fov_segment()
     ikdtree.acquire_removed_points(points_history);
 
     if (cub_needrm.size() > 0)
-        kdtree_delete_counter = ikdtree.Delete_Point_Boxes(cub_needrm); //删除指定范围内的点
+        kdtree_delete_counter = ikdtree.Delete_Point_Boxes(cub_needrm); // 删除指定范围内的点
 }
 
 void RGBpointBodyLidarToIMU(PointType const *const pi, PointType *const po)
@@ -340,7 +340,7 @@ void RGBpointBodyLidarToIMU(PointType const *const pi, PointType *const po)
     po->intensity = pi->intensity;
 }
 
-//根据最新估计位姿  增量添加点云到map
+// 根据最新估计位姿  增量添加点云到map
 void map_incremental()
 {
     PointVector PointToAdd;
@@ -349,7 +349,7 @@ void map_incremental()
     PointNoNeedDownsample.reserve(feats_down_size);
     for (int i = 0; i < feats_down_size; i++)
     {
-        //转换到世界坐标系
+        // 转换到世界坐标系
         pointBodyToWorld(&(feats_down_body->points[i]), &(feats_down_world->points[i]));
 
         if (!Nearest_Points[i].empty() && flg_EKF_inited)
@@ -357,21 +357,21 @@ void map_incremental()
             const PointVector &points_near = Nearest_Points[i];
             bool need_add = true;
             BoxPointType Box_of_Point;
-            PointType mid_point; //点所在体素的中心
+            PointType mid_point; // 点所在体素的中心
             mid_point.x = floor(feats_down_world->points[i].x / filter_size_map_min) * filter_size_map_min + 0.5 * filter_size_map_min;
             mid_point.y = floor(feats_down_world->points[i].y / filter_size_map_min) * filter_size_map_min + 0.5 * filter_size_map_min;
             mid_point.z = floor(feats_down_world->points[i].z / filter_size_map_min) * filter_size_map_min + 0.5 * filter_size_map_min;
             float dist = calc_dist(feats_down_world->points[i], mid_point);
             if (fabs(points_near[0].x - mid_point.x) > 0.5 * filter_size_map_min && fabs(points_near[0].y - mid_point.y) > 0.5 * filter_size_map_min && fabs(points_near[0].z - mid_point.z) > 0.5 * filter_size_map_min)
             {
-                PointNoNeedDownsample.push_back(feats_down_world->points[i]); //如果距离最近的点都在体素外，则该点不需要Downsample
+                PointNoNeedDownsample.push_back(feats_down_world->points[i]); // 如果距离最近的点都在体素外，则该点不需要Downsample
                 continue;
             }
             for (int j = 0; j < NUM_MATCH_POINTS; j++)
             {
                 if (points_near.size() < NUM_MATCH_POINTS)
                     break;
-                if (calc_dist(points_near[j], mid_point) < dist) //如果近邻点距离 < 当前点距离，不添加该点
+                if (calc_dist(points_near[j], mid_point) < dist) // 如果近邻点距离 < 当前点距离，不添加该点
                 {
                     need_add = false;
                     break;
@@ -605,7 +605,7 @@ int main(int argc, char **argv)
     p_imu1->set_param(Lidar_T_wrt_IMU, Lidar_R_wrt_IMU, V3D(gyr_cov, gyr_cov, gyr_cov), V3D(acc_cov, acc_cov, acc_cov),
                       V3D(b_gyr_cov, b_gyr_cov, b_gyr_cov), V3D(b_acc_cov, b_acc_cov, b_acc_cov));
 
-    signal(SIGINT, SigHandle); //当程序检测到signal信号（例如ctrl+c） 时  执行 SigHandle 函数
+    signal(SIGINT, SigHandle); // 当程序检测到signal信号（例如ctrl+c） 时  执行 SigHandle 函数
     ros::Rate rate(5000);
 
     while (ros::ok())
@@ -614,7 +614,7 @@ int main(int argc, char **argv)
             break;
         ros::spinOnce();
 
-        if (sync_packages(Measures)) //把一次的IMU和LIDAR数据打包到Measures
+        if (sync_packages(Measures)) // 把一次的IMU和LIDAR数据打包到Measures
         {
             double t00 = omp_get_wtime();
 
@@ -628,7 +628,7 @@ int main(int argc, char **argv)
 
             p_imu1->Process(Measures, kf, feats_undistort);
 
-            //如果feats_undistort为空 ROS_WARN
+            // 如果feats_undistort为空 ROS_WARN
             if (feats_undistort->empty() || (feats_undistort == NULL))
             {
                 ROS_WARN("No point, skip this scan!\n");
@@ -640,9 +640,9 @@ int main(int argc, char **argv)
 
             flg_EKF_inited = (Measures.lidar_beg_time - first_lidar_time) < INIT_TIME ? false : true;
 
-            lasermap_fov_segment(); //更新localmap边界，然后降采样当前帧点云
+            lasermap_fov_segment(); // 更新localmap边界，然后降采样当前帧点云
 
-            //点云下采样
+            // 点云下采样
             downSizeFilterSurf.setInputCloud(feats_undistort);
             downSizeFilterSurf.filter(*feats_down_body);
             feats_down_size = feats_down_body->points.size();
@@ -654,7 +654,7 @@ int main(int argc, char **argv)
                 continue;
             }
 
-            //初始化ikdtree(ikdtree为空时)
+            // 初始化ikdtree(ikdtree为空时)
             if (ikdtree.Root_Node == nullptr)
             {
                 ikdtree.set_downsample_param(filter_size_map_min);
@@ -663,7 +663,7 @@ int main(int argc, char **argv)
                 {
                     pointBodyToWorld(&(feats_down_body->points[i]), &(feats_down_world->points[i])); // lidar坐标系转到世界坐标系
                 }
-                ikdtree.Build(feats_down_world->points); //根据世界坐标系下的点构建ikdtree
+                ikdtree.Build(feats_down_world->points); // 根据世界坐标系下的点构建ikdtree
                 continue;
             }
 
@@ -677,7 +677,7 @@ int main(int argc, char **argv)
             }
 
             /*** iterated state estimation ***/
-            Nearest_Points.resize(feats_down_size); //存储近邻点的vector
+            Nearest_Points.resize(feats_down_size); // 存储近邻点的vector
             kf.update_iterated_dyn_share_modified(LASER_POINT_COV, feats_down_body, ikdtree, Nearest_Points, NUM_MAX_ITERATIONS, extrinsic_est_en);
 
             state_point = kf.get_x();
